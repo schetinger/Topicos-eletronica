@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Relatório CEP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Gerador de Relatório I-MR</h1>
+        <p class="text-gray-600 mb-6">Cole o JSON com as amostras abaixo para gerar e baixar o relatório em PDF.</p>
+
+        <textarea id="jsonInput" rows="10" 
+            class="w-full p-4 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
+            placeholder='{
+    "1": [50.5],
+    "2": [49.8],
+    "3": [50.2]
+}'></textarea>
+
+        <div id="statusMessage" class="hidden mb-4 text-sm font-semibold"></div>
+
+        <button id="btnGerar" onclick="enviarDados()" 
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
+            <span>Gerar e Baixar PDF</span>
+        </button>
+    </div>
+
+    <script>
+        async function enviarDados() {
+            const btn = document.getElementById('btnGerar');
+            const status = document.getElementById('statusMessage');
+            const jsonText = document.getElementById('jsonInput').value;
+            
+            // Limpa mensagens anteriores e muda o estado do botão
+            status.className = "hidden mb-4 text-sm font-semibold";
+            btn.innerHTML = 'Gerando... aguarde';
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                // 1. Valida se o que foi colado é realmente um JSON
+                const payload = JSON.parse(jsonText);
+
+                // 2. Faz a requisição POST para a sua API
+                // ATENÇÃO: Troque a URL abaixo para a rota correta do seu Django
+                const response = await fetch('http://localhost:8000/carta/gerar-carta/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro na API: ${response.statusText}`);
+                }
+
+                // 3. A MÁGICA DO PDF: Transforma a resposta em um arquivo binário (Blob)
+                const blob = await response.blob();
+                
+                // 4. Cria um link temporário e força o clique para baixar
+                const url = window.URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                //const a = document.createElement('a');
+                //a.style.display = 'none';
+                //a.href = url;
+                //a.download = 'relatorio_cep.pdf'; // Nome do arquivo que será salvo
+                //document.body.appendChild(a);
+                //a.click();
+                
+                // Limpeza do link temporário
+                //window.URL.revokeObjectURL(url);
+                //document.body.removeChild(a);
+
+                // Mensagem de sucesso
+                status.innerText = "PDF gerado e baixado com sucesso!";
+                status.classList.add('text-green-600', 'block');
+                status.classList.remove('hidden');
+
+            } catch (error) {
+                // Tratamento de erros (JSON inválido ou erro no servidor)
+                status.innerText = error.name === "SyntaxError" 
+                    ? "Erro: O formato do JSON está inválido." 
+                    : `Falha na requisição: ${error.message}`;
+                status.classList.add('text-red-600', 'block');
+                status.classList.remove('hidden');
+                console.error(error);
+            } finally {
+                // Restaura o botão
+                btn.innerHTML = 'Gerar e Baixar PDF';
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>

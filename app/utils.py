@@ -1,8 +1,13 @@
-import io
+from io import BytesIO
 import matplotlib
 matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import base64
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+import io
 
 def gerar_grafico_da_carta(dados_brutos):
     # 1. Cria uma "tela" em branco para o gráfico
@@ -64,13 +69,13 @@ def grafico_media(carta):
     plt.legend() # Mostra a caixinha com os significados das cores
     plt.grid(True, linestyle=':', alpha=0.6) # Coloca uma grade de fundo suave
 
-    # 6. Salva na memória e devolve para a View (Igualzinho fizemos antes)
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
     plt.close()
+    image_png = buffer.getvalue()
     
-    buffer.seek(0)
-    return buffer
+    #grafico_base64 = base64.b64encode(image_png).decode('utf-8')
+    return  base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 def grafico_amplitude(carta):
     plt.figure(figsize=(8, 6))
@@ -109,6 +114,210 @@ def grafico_amplitude(carta):
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
     plt.close()
+    image_png = buffer.getvalue()
     
-    buffer.seek(0)
-    return buffer
+    #grafico_base64 = base64.b64encode(image_png).decode('utf-8')
+    return  base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+
+def grafico_imr(carta):
+    plt.figure(figsize=(8, 6))
+    # 1. Puxamos apenas a Lista "1" do seu JSON
+    # Se a lista "1" não existir, pegamos uma lista vazia para não quebrar
+    lista_1 = list(carta.data.values())
+    
+    if len(lista_1) > 0:
+        # 2. Fazemos os cálculos rápidos
+        limite_superior = carta.lsc
+        limite_inferior = carta.lic
+        # Criamos um eixo X falso só para espalhar os pontos 
+        # (vai ser: 1, 2, 3, 4, 5... dependendo do tamanho da lista)
+        eixo_x = range(1, len(lista_1) + 1)
+        
+        # 3. Desenhamos os PONTOS (Gráfico de Dispersão / Scatter)
+        # zorder=5 faz os pontos ficarem por cima das linhas
+        plt.scatter(eixo_x, lista_1, color='blue', s=100, label='Pontos da Lista 1', zorder=5)
+        
+        # 4. Desenhamos as LINHAS HORIZONTAIS (axhline = Axis Horizontal Line)
+        # Linha da Média (Vermelha e sólida)
+        plt.axhline(y=carta.lc, color='red', linestyle='-', linewidth=2, label=f'Média ({carta.lc:.2f})')
+        
+        # Linhas dos Limites (Verdes e tracejadas)
+        plt.axhline(y=limite_superior, color='green', linestyle='--', label=f'Limite Sup ({limite_superior})')
+        plt.axhline(y=limite_inferior, color='green', linestyle='--', label=f'Limite Inf ({limite_inferior})')
+
+    # 5. Perfumaria: Deixando o gráfico bonito e fácil de ler
+    plt.title("Análise de controle - IMR", fontsize=14, fontweight='bold')
+    plt.xlabel("Ordem de amostras")
+    plt.ylabel("Valores")
+    plt.legend() # Mostra a caixinha com os significados das cores
+    plt.grid(True, linestyle=':', alpha=0.6) # Coloca uma grade de fundo suave
+
+       # 6. Salva na memória e devolve para a View (Igualzinho fizemos antes)
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    image_png = buffer.getvalue()
+    
+    #grafico_base64 = base64.b64encode(image_png).decode('utf-8')
+    return  base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+def grafico_u(carta):
+    plt.figure(figsize=(8, 6))
+    lista_1 = list(carta.taxa.values())
+    
+    if len(lista_1) > 0:
+        limite_superior = carta.lsc
+        limite_inferior = carta.lic
+        eixo_x = range(1, len(lista_1) + 1)
+        
+        # 3. Desenhamos os PONTOS (Gráfico de Dispersão / Scatter)
+        # zorder=5 faz os pontos ficarem por cima das linhas
+        plt.scatter(eixo_x, lista_1, color='blue', s=100, label='Pontos da Lista 1', zorder=5)
+        
+        # 4. Desenhamos as LINHAS HORIZONTAIS (axhline = Axis Horizontal Line)
+        # Linha da Média (Vermelha e sólida)
+        plt.axhline(y=carta.lc, color='red', linestyle='-', linewidth=2, label=f'Média ({carta.lc:.2f})')
+        
+        # Linhas dos Limites (Verdes e tracejadas)
+        plt.axhline(y=limite_superior, color='green', linestyle='--', label=f'Limite Sup ({limite_superior})')
+        plt.axhline(y=limite_inferior, color='green', linestyle='--', label=f'Limite Inf ({limite_inferior})')
+
+    # 5. Perfumaria: Deixando o gráfico bonito e fácil de ler
+    plt.title("Análise de controle - IMR", fontsize=14, fontweight='bold')
+    plt.xlabel("Ordem de amostras")
+    plt.ylabel("Valores")
+    plt.legend() # Mostra a caixinha com os significados das cores
+    plt.grid(True, linestyle=':', alpha=0.6) # Coloca uma grade de fundo suave
+
+       # 6. Salva na memória e devolve para a View (Igualzinho fizemos antes)
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    image_png = buffer.getvalue()
+    
+    #grafico_base64 = base64.b64encode(image_png).decode('utf-8')
+    return  base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+def grafico_p(carta):
+    plt.figure(figsize=(8, 6))
+    lista_1 = list(carta.taxa.values())
+    
+    if len(lista_1) > 0:
+        limite_superior = carta.lsc
+        limite_inferior = carta.lic
+        eixo_x = range(1, len(lista_1) + 1)
+        
+        # 3. Desenhamos os PONTOS (Gráfico de Dispersão / Scatter)
+        # zorder=5 faz os pontos ficarem por cima das linhas
+        plt.scatter(eixo_x, lista_1, color='blue', s=100, label='Pontos da Lista 1', zorder=5)
+        
+        # 4. Desenhamos as LINHAS HORIZONTAIS (axhline = Axis Horizontal Line)
+        # Linha da Média (Vermelha e sólida)
+        plt.axhline(y=carta.lc, color='red', linestyle='-', linewidth=2, label=f'Média ({carta.lc:.2f})')
+        
+        # Linhas dos Limites (Verdes e tracejadas)
+        plt.axhline(y=limite_superior, color='green', linestyle='--', label=f'Limite Sup ({limite_superior})')
+        plt.axhline(y=limite_inferior, color='green', linestyle='--', label=f'Limite Inf ({limite_inferior})')
+
+    # 5. Perfumaria: Deixando o gráfico bonito e fácil de ler
+    plt.title("Análise de controle - IMR", fontsize=14, fontweight='bold')
+    plt.xlabel("Ordem de amostras")
+    plt.ylabel("Valores")
+    plt.legend() # Mostra a caixinha com os significados das cores
+    plt.grid(True, linestyle=':', alpha=0.6) # Coloca uma grade de fundo suave
+
+       # 6. Salva na memória e devolve para a View (Igualzinho fizemos antes)
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    plt.close()
+    image_png = buffer.getvalue()
+    
+    #grafico_base64 = base64.b64encode(image_png).decode('utf-8')
+    return  base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+
+
+
+
+
+
+def GerarRelatorioXr(carta):
+    
+    context = {
+            'carta': carta,
+            'graficox': grafico_media(carta),
+            'graficor':grafico_amplitude(carta),
+            'dados_tabela': carta.data.items()
+        }
+    template = get_template('front/relatorios/RelatorioXr.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")),result)
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        #response['Content-Disposition'] = f'attachment; filename="relatorio_{carta.id}.pdf"'
+        response['Content-Disposition'] = f'inline; filename="relatorio_{carta.id}.pdf"'
+        return response
+    
+    return None
+
+def GerarRelatorioIMR(carta):
+    
+    context = {
+            'carta': carta,
+            'grafico': grafico_imr(carta),
+            'dados_tabela': carta.data.items()
+        }
+    template = get_template('front/relatorios/RelatorioIMR.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")),result)
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        #response['Content-Disposition'] = f'attachment; filename="relatorio_{carta.id}.pdf"'
+        response['Content-Disposition'] = f'inline; filename="relatorio_{carta.id}.pdf"'
+        return response
+    
+    return None
+
+def GerarRelatorioU(carta):
+    
+    context = {
+            'carta': carta,
+            'grafico': grafico_u(carta),
+            'dados_tabela': carta.data.items()
+        }
+    template = get_template('front/relatorios/RelatorioU.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")),result)
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        #response['Content-Disposition'] = f'attachment; filename="relatorio_{carta.id}.pdf"'
+        response['Content-Disposition'] = f'inline; filename="relatorio_{carta.id}.pdf"'
+        return response
+    
+    return None
+
+def GerarRelatorioP(carta):
+    
+    context = {
+            'carta': carta,
+            'grafico': grafico_p(carta),
+            'dados_tabela': carta.data.items()
+        }
+    template = get_template('front/relatorios/RelatorioP.html')
+    html = template.render(context)
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")),result)
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        #response['Content-Disposition'] = f'attachment; filename="relatorio_{carta.id}.pdf"'
+        response['Content-Disposition'] = f'inline; filename="relatorio_{carta.id}.pdf"'
+        return response
+    
+    return None
+    
+
+

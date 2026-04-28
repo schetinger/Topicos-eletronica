@@ -1,0 +1,48 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: sans-serif; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #444; margin-bottom: 20px; }
+        .stats-box { background: #f4f4f4; padding: 15px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #0044cc; color: white; }
+        .chart-container { text-align: center; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Relatório Estatístico de Processo (CEP)</h1>
+        <h1>Carta U</h1>
+    </div>
+
+    <div class="stats-box">
+        <p><strong>ID da Carta:</strong> {{ carta.id }}</p>
+        <p><strong>Linha Central (LC):</strong> {{ carta.lc }}</p>
+        <p><strong>Limite Superior (LSC):</strong> {{ carta.lsc }}</p>
+        <p><strong>Limite Inferior (LIC):</strong> {{ carta.lic }}</p>
+    </div>
+
+    <div class="chart-container">
+        <h3>Gráfico de Controle</h3>
+        <img src="data:image/png;base64,{{ grafico }}" width="500">
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Amostra</th>
+                <th>Valores Medidos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for chave, valor in carta.taxa.items %}
+            <tr>
+                <td>{{ chave }}</td>
+                <td>{{ valor }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
