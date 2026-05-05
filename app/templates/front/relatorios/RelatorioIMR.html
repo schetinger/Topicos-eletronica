@@ -19,14 +19,18 @@
 
     <div class="stats-box">
         <p><strong>ID da Carta:</strong> {{ carta.id }}</p>
-        <p><strong>Linha Central (LC):</strong> {{ carta.lc }}</p>
-        <p><strong>Limite Superior (LSC):</strong> {{ carta.lsc }}</p>
-        <p><strong>Limite Inferior (LIC):</strong> {{ carta.lic }}</p>
+        <p><strong>Linha Central (LC):</strong> {{ carta.lc_i }}</p>
+        <p><strong>Limite Superior (LSC):</strong> {{ carta.lsc_i }}</p>
+        <p><strong>Limite Inferior (LIC):</strong> {{ carta.lic_i }}</p>
     </div>
 
     <div class="chart-container">
-        <h3>Gráfico de Controle</h3>
-        <img src="data:image/png;base64,{{ grafico }}" width="500">
+        <h3>Gráfico de Controle I</h3>
+        <img src="data:image/png;base64,{{ grafico_i }}" width="500">
+    </div>
+    <div class="chart-container">
+        <h3>Gráfico de controle MR</h3>
+        <img src="data:image/png;base64,{{ grafico_mr }}" width="500">
     </div>
 
     <table>

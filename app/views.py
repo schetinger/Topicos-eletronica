@@ -1,10 +1,8 @@
 from app.models import Media_Amplitude,imr,p,u
-from app.serializers import CartaXr,CartaIMR,CartaP,CartaU
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework import generics
 from django.http import HttpResponse
-from .utils import GerarRelatorioXr,GerarRelatorioIMR,GerarRelatorioU,GerarRelatorioP
+from .utils import GerarRelatorioXr,GerarRelatorioIMR,GerarRelatorioU,GerarRelatorioP,grafico_u
 from rest_framework.response import Response
 from django.shortcuts import render
 
@@ -14,36 +12,6 @@ def pagina_inicial(request):
     # Isso vai renderizar o seu HTML de teste
     return render(request, 'front/index.html')
 
-class CartaListCreate(generics.ListCreateAPIView):
-    queryset = u.objects.all()
-    serializer_class = CartaU
-       
-    
-class CartaDetailChangeDelete(generics.RetrieveUpdateDestroyAPIView):
-   queryset = u.objects.all()
-   serializer_class = CartaU
-
-class CartaGraficoMedia(APIView):
-    def get(self, request,carta_id):
-        try:
-            carta = Media_Amplitude.objects.get(id=carta_id)
-        except Media_Amplitude.DoesNotExist:
-            return HttpResponse("carta nao encontrada", status=404)
-        
-        dados_brutos = carta
-        buffer_imagem = grafico_media(dados_brutos)
-        return HttpResponse(buffer_imagem.getvalue(),content_type="image/png")
-
-class CartaGraficoAmplitude(APIView):
-    def get(self, request,carta_id):
-        try:
-            carta = Media_Amplitude.objects.get(id=carta_id)
-        except Media_Amplitude.DoesNotExist:
-            return HttpResponse("carta nao encontrada", status=404)
-        
-        dados_brutos = carta
-        buffer_imagem = grafico_amplitude(dados_brutos)
-        return HttpResponse(buffer_imagem.getvalue(),content_type="image/png")
 
 class CartaGraficoIMR(APIView):
         def get(self, request,carta_id):
@@ -53,7 +21,7 @@ class CartaGraficoIMR(APIView):
                 return HttpResponse("carta nao encontrada", status=404)
             
             dados_brutos = carta
-            buffer_imagem = grafico_imr(dados_brutos)
+            buffer_imagem = grafico_u(dados_brutos)
             return HttpResponse(buffer_imagem.getvalue(),content_type="image/png")
 
 class GeradorCEP(APIView):
@@ -80,8 +48,9 @@ class GeradorCEP(APIView):
             elif tipo_carta =="u":
                 nova_carta = u.objects.create(data=dados_medicao)
                 return GerarRelatorioU(nova_carta)
+            
             elif tipo_carta == "p":
-                nova_carta = u.objects.create(data=dados_medicao)
+                nova_carta = p.objects.create(data=dados_medicao)
                 return GerarRelatorioP(nova_carta)
             else:
                 return Response(

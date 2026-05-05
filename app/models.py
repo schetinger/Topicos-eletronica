@@ -78,7 +78,7 @@ class p (Carta):
         tamanho =0
         super().dados()
         for i,valores in self.data.items():
-            calcular_lc += i[0]
+            calcular_lc += valores[0]
             tamanho +=self.n
             calcular_taxas[i]=round(valores[0]/self.n,3)
         self.lc = calcular_lc/tamanho
@@ -89,6 +89,7 @@ class p (Carta):
              self.lic= round(self.lc-3*desvio(self.lc,self.n),3)
         else: self.lic=0
         self.lsc = round(self.lc+3*desvio(self.lc,self.n),3)
+        self.taxa = calcular_taxas
 class u(Carta):
      n = 20
      lc = models.FloatField(default=0)
@@ -113,12 +114,18 @@ class u(Carta):
         self.lsc = round(self.lc+3*desvio(self.lc,self.n),3)
         self.taxa = calcular_taxas
 class imr(Carta):
-     lc = models.JSONField(default=dict)
+     
      amplitude_movel = models.JSONField(default=dict)
-     lsc = models.FloatField(default=0)
-     lic = models.FloatField(default=0)
+     lc_i = models.FloatField(default=0)
+     lsc_i = models.FloatField(default=0)
+     lic_i = models.FloatField(default=0)
+     lc_mr = models.FloatField(default=0)
+     lsc_mr = models.FloatField(default=0)
+     lic_mr= models.FloatField(default=0)
      am_media = models.FloatField(default=0)
-     constante_limites = 2.66
+     e2 = 2.66
+     d3 = 0
+     d4 = 3.267
      def dados (self, *args, **kwargs):
         super().dados()
         calcular_amplitudem = {}
@@ -129,9 +136,12 @@ class imr(Carta):
             calcular_amplitudem[i-1]=mr_atual
         
         self.amplitude_movel = calcular_amplitudem
-        self.lc = statistics.mean(list(self.media.values()))
+        self.lc_i = round(statistics.mean(list(self.media.values())),3)
         self.am_media = statistics.mean(list(self.amplitude_movel.values()))
-        self.lsc = round(self.lc +self.constante_limites*self.am_media,3)
-        self.lic = round(self.lc -self.constante_limites*self.am_media,3)
+        self.lsc_i = round(self.lc_i +self.e2*self.am_media,3)
+        self.lic_i = round(self.lc_i -self.e2*self.am_media,3)
+        self.lic_mr = round(self.am_media*self.d3,3)
+        self.lsc_mr = round(self.am_media*self.d4,3)
+        self.lc_mr = self.am_media
     
     
