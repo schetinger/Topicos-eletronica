@@ -28,6 +28,8 @@ class GeradorCEP(APIView):
     def post (self,request,*args, **kwargs):
         tipo_carta = request.data.get("chart")
         dados_medicao = request.data.get("measurements")
+        especificacoes = request.data.get("especificacoes", {})
+        intervalo_probabilidade = request.data.get("intervalo_probabilidade", {})
 
         if not tipo_carta or not dados_medicao:
             return Response(
@@ -37,7 +39,11 @@ class GeradorCEP(APIView):
 
         try:
             if tipo_carta == "Xr":
-                nova_carta = Media_Amplitude.objects.create(data=dados_medicao)
+                nova_carta = Media_Amplitude.objects.create(data=dados_medicao,
+                                                            lse=especificacoes.get('LSE'),
+                                                            lie=especificacoes.get('LIE'),
+                                                            x1=intervalo_probabilidade.get('x1'),
+                                                            x0=intervalo_probabilidade.get('x0'))
                 return GerarRelatorioXr(nova_carta)
 
                 

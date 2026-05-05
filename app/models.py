@@ -7,6 +7,13 @@ class Carta(models.Model):
     dp = models.JSONField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     dp_geral = models.FloatField(default=0)
+    x1 = models.FloatField(default=0)
+    x0= models.FloatField(default=0)
+    lse = models.FloatField(default=0)
+    lie = models.FloatField(default=0)
+    cp = models.FloatField(default=0)
+    cpk = models.FloatField(default=0)
+    probabilidade = models.JSONField(default=dict)
 
     class Meta:
         abstract = True
@@ -23,8 +30,10 @@ class Carta(models.Model):
             elif isinstance(lista_numeros,list) and len(lista_numeros)==1:
                 calcular_media[chave] = lista_numeros[0]
                 calcular_dp[chave] = 0.0
-    
-        self.dp_geral = round(statistics.mean(list(calcular_dp.values())),3)
+        amostra = []
+        for valores in self.data.values():
+            amostra += valores
+        self.dp_geral = round(statistics.stdev(amostra),3)
         self.media =calcular_media
         self.dp = calcular_dp
        
@@ -58,7 +67,7 @@ class Media_Amplitude(Carta):
                             calcular_amplitude[chave] = round(max(lista_numeros)-min(lista_numeros),3)
                         elif isinstance(lista_numeros,list) and len(lista_numeros)==1:
                             calcular_amplitude[chave] = 0
-                 
+                
                 self.media_geral = round(statistics.mean(list(self.media.values())),3)
                 self.amplitude = calcular_amplitude
                 self.media_amplitude = round(statistics.mean(list(self.amplitude.values())),3)
@@ -66,6 +75,17 @@ class Media_Amplitude(Carta):
                 self.lsc_media =round( self.media_geral + 3*self.dp_geral,3)
                 self.lic_amp = round( self.media_amplitude*self.d3, 3)
                 self.lsc_amp = round( self.media_amplitude*self.d4, 3)
+                self.cp =round(((self.lse-self.lie)/(6*self.dp_geral)),3)
+                cpk_superior = (self.lse - self.media_geral) / (3 * self.dp_geral)
+                cpk_inferior = (self.media_geral - self.lie) / (3 * self.dp_geral)
+                self.cpk = min(cpk_superior, cpk_inferior)
+                curva_normal = statistics.NormalDist(mu=self.media_geral, sigma=self.dp_geral)
+                intervalo = (curva_normal.cdf(self.x1) - curva_normal.cdf(self.x0))*100
+                prob_menor_x1 = curva_normal.cdf(self.x1) * 100
+                prob_maior_x0 = (1 - curva_normal.cdf(self.x0)) * 100
+                self.probabilidade= {"menor_x1": round(prob_menor_x1,3),
+                                     "maior_x0": round(prob_maior_x0,3),
+                                     "intervalo":round(intervalo,3)}
 class p (Carta):
     n = 20
     lc = models.FloatField(default=0)

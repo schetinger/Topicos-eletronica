@@ -19,9 +19,15 @@
 
     <div class="stats-box">
         <p><strong>ID da Carta:</strong> {{ carta.id }}</p>
-        <p><strong>Linha Central (LC):</strong> {{ carta.lc }}</p>
-        <p><strong>Limite Superior (LSC):</strong> {{ carta.lsc }}</p>
-        <p><strong>Limite Inferior (LIC):</strong> {{ carta.lic }}</p>
+        <p><strong>Linha Central (LC):</strong> {{ carta.media_geral }}</p>
+        <p><strong>Limite Superior (LSC):</strong> {{ carta.lsc_media }}</p>
+        <p><strong>Limite Inferior (LIC):</strong> {{ carta.lic_media }}</p>
+        <p><strong>capacidade do processo:</strong> {{ carta.cp }}</p>
+        <p><strong>capacidade do processo k:</strong> {{ carta.cpk }}</p>
+        <p><strong>Probabilidade de um x&lt; {{carta.x1}}:</strong> {{ carta.probabilidade.menor_x1 }}</p>
+        <p><strong>Probabilidade de um x>{{carta.x0}}:</strong> {{ carta.probabilidade.maior_x0 }}</p>
+        <p><strong>Probabilidade de {{carta.x0}}&lt;x&lt;{{carta.x1}} :</strong> {{ carta.probabilidade.intervalo}}</p>
+
     </div>
 
     <div class="chart-container">
