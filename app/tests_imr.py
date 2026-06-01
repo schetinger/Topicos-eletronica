@@ -95,3 +95,27 @@ class RelatorioIMRTemplateTest(TestCase):
         self.assertIn("Cp", html, "Cp não encontrado no HTML do RelatorioIMR")
         self.assertIn("Cpk", html, "Cpk não encontrado no HTML do RelatorioIMR")
         self.assertIn("Alerta", html, "Bloco de alertas não encontrado no HTML do RelatorioIMR")
+
+    def test_imr_is_capaz_reprovado(self):
+        # Limites muito apertados (Cp e Cpk < 1.0)
+        carta = imr.objects.create(
+            data=DADOS_IMR, lse=10.2, lie=10.0, x1=10.5, x0=9.5
+        )
+        self.assertFalse(carta.is_capaz)
+        html = render_to_string(
+            "front/relatorios/RelatorioIMR.html",
+            {"carta": carta, "grafico_i": "", "grafico_mr": "", "dados_tabela": carta.data.items()},
+        )
+        self.assertIn("Processo Reprovado", html)
+
+    def test_imr_is_capaz_aprovado(self):
+        # Com limites super folgados, Cp e Cpk passarão de 1.0
+        carta = imr.objects.create(
+            data=DADOS_IMR, lse=15.0, lie=5.0, x1=10.5, x0=9.5
+        )
+        self.assertTrue(carta.is_capaz)
+        html = render_to_string(
+            "front/relatorios/RelatorioIMR.html",
+            {"carta": carta, "grafico_i": "", "grafico_mr": "", "dados_tabela": carta.data.items()},
+        )
+        self.assertIn("Processo Capaz", html)

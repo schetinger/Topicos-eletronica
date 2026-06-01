@@ -65,3 +65,27 @@ class RelatorioXrTabelaDadosBrutosTest(TestCase):
         # Cada chave de amostra deve aparecer na tabela
         for chave in DADOS_XR:
             self.assertIn(chave, html, f"Chave '{chave}' não encontrada no HTML do RelatorioXr")
+
+    def test_xr_is_capaz_reprovado(self):
+        # Limites apertados, processo deve reprovar (Cp/Cpk < 1)
+        carta = Media_Amplitude.objects.create(
+            data=DADOS_XR, lse=10.5, lie=9.5, x1=10.5, x0=9.5
+        )
+        self.assertFalse(carta.is_capaz)
+        html = render_to_string(
+            "front/relatorios/RelatorioXr.html",
+            {"carta": carta, "graficox": "", "graficor": "", "dados_tabela": carta.data.items()},
+        )
+        self.assertIn("Processo Reprovado", html)
+
+    def test_xr_is_capaz_aprovado(self):
+        # Limites folgados, processo deve passar (Cp/Cpk >= 1)
+        carta = Media_Amplitude.objects.create(
+            data=DADOS_XR, lse=15.0, lie=5.0, x1=10.5, x0=9.5
+        )
+        self.assertTrue(carta.is_capaz)
+        html = render_to_string(
+            "front/relatorios/RelatorioXr.html",
+            {"carta": carta, "graficox": "", "graficor": "", "dados_tabela": carta.data.items()},
+        )
+        self.assertIn("Processo Capaz", html)

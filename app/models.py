@@ -16,6 +16,12 @@ class Carta(models.Model):
     probabilidade = models.JSONField(default=dict)
     alertas = models.JSONField(default=dict)
 
+    @property
+    def is_capaz(self):
+        if self.lse > 0 and self.lie > 0:
+            return self.cp >= 1.0 and self.cpk >= 1.0
+        return None
+
     class Meta:
         abstract = True
     
